@@ -1,7 +1,10 @@
 package com.nagarro.nagp.handler;
 
+import static org.junit.Assert.assertEquals;
+
 import com.nagarro.nagp.Inventory;
 import com.nagarro.nagp.domain.Category;
+import com.nagarro.nagp.exception.InvalidRequestException;
 import com.nagarro.nagp.repository.DurableInventoryRepository;
 import com.nagarro.nagp.repository.FragileInventoryRepository;
 import org.junit.Before;
@@ -25,15 +28,29 @@ public class InventoryHandlerTest {
     @Mock
     private FragileInventoryRepository fragileInventoryRepository;
 
+
     @Before
     public void init() {
         MockitoAnnotations.initMocks(this);
     }
 
+    @Test(expected = InvalidRequestException.class)
+    public void shouldReturnExceptionOnNullCategory() {
+        final Inventory inventory = new Inventory(null);
+        handler.createInventory(inventory);
+    }
+
     @Test
-    public void shouldCreateInverntorySuccessfully() {
-        final Inventory expected = Mockito.mock(Inventory.class);
-        handler.createInventory(expected);
-        Mockito.verify(durableInventoryRepository).save(expected);
+    public void shouldReturnFragileCategory() {
+        final Inventory expected = new Inventory(Category.FRAGILE);
+        final Inventory actual = handler.createInventory(expected);
+        assertEquals(expected.getCategory(), actual.getCategory());
+    }
+
+    @Test
+    public void shouldReturnDurableCategory() {
+        final Inventory inventory = new Inventory(Category.DURABLE);
+        final Inventory actual = handler.createInventory(inventory);
+        assertEquals(Category.FRAGILE, actual.getCategory());
     }
 }
